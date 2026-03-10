@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHD Mailer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Outfit',sans-serif;font-size:13px;background:#EDF1F7;color:#1A2236;display:flex;flex-direction:column;}
+
+:root{
+  --sb-w:224px;
+  --sb:#1535A0;
+  --sb-hi:rgba(255,255,255,0.10);
+  --sb-ac:rgba(96,165,250,0.20);
+  --sb-text:rgba(255,255,255,0.60);
+  --sb-active:#BFDBFE;
+  --sb-label:rgba(255,255,255,0.25);
+  --blue:#2563EB;--blue-dk:#1D4ED8;--blue-lt:#EFF6FF;--blue-bd:#BFDBFE;
+  --green:#16A34A;--green-lt:#F0FDF4;
+  --red:#DC2626;--red-lt:#FEF2F2;
+  --amber:#D97706;--amber-lt:#FFFBEB;
+  --purple:#7C3AED;--purple-lt:#F5F3FF;
+  --border:#E2E8F0;--border-mid:#CBD5E1;
+  --panel:#FFFFFF;
+  --text:#1A2236;--text-mid:#4B5675;--text-muted:#8896B3;
+  --mono:'JetBrains Mono',monospace;
+  --r:8px;
+}
+
+/* ── Titlebar ── */
+.titlebar{height:46px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;z-index:50;}
+.tb-brand{width:var(--sb-w);display:flex;align-items:center;padding:0 18px;border-right:1px solid var(--border);height:100%;flex-shrink:0;gap:10px;}
+.tb-logo{height:24px;width:auto;display:block;object-fit:contain;}
+.tb-logo-fb{width:26px;height:26px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tb-center{flex:1;padding:0 20px;display:flex;align-items:center;gap:8px;}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);}
+.breadcrumb strong{color:var(--text);font-weight:600;}
+.bc-sep{color:var(--border-mid);}
+.tb-right{margin-left:auto;padding-right:20px;display:flex;gap:8px;align-items:center;}
+.status-dot-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:99px;border:1px solid var(--border);color:var(--text-mid);}
+.status-dot-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px rgba(22,163,74,0.2);}
+
+/* ── Layout ── */
+.app{flex:1;display:flex;overflow:hidden;}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sb-w);background:linear-gradient(180deg,#7ea3ff 0%,#00b55a 100%);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:0;}
+.sb-accent{height:3px;background:linear-gradient(90deg,#60A5FA,#34D399);flex-shrink:0;}
+.sb-section{padding:16px 10px 6px;}
+.sb-label{font-size:10px;font-weight:700;color:var(--sb-label);text-transform:uppercase;letter-spacing:1.5px;padding:0 10px;margin-bottom:5px;display:block;}
+.sb-mode-divider{margin:8px 12px;border-radius:4px;overflow:hidden;}
+.sb-mode-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);padding:0 10px;margin:14px 0 5px;display:block;}
+
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--sb-text);font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:'Outfit',sans-serif;letter-spacing:0.1px;}
+.nav-item:hover{background:var(--sb-hi);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:var(--sb-ac);color:var(--sb-active);font-weight:600;}
+.nav-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.12);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,0.4);font-family:var(--mono);}
+.nav-item.active .nav-num{background:#29ff57;border-color:#60A5FA;color:#fff;}
+.nav-item.done .nav-num{background:var(--green);border-color:#4ADE80;color:#fff;}
+.nav-icon{width:14px;height:14px;flex-shrink:0;opacity:0.5;}
+.nav-item:hover .nav-icon,.nav-item.active .nav-icon{opacity:1;}
+
+/* Mode toggle pills in sidebar */
+.mode-pills{display:flex;margin:10px 10px 4px;background:rgba(0,0,0,0.25);border-radius:8px;padding:3px;}
+.mode-pill{flex:1;padding:6px 4px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,0.45);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:center;letter-spacing:0.2px;}
+.mode-pill.active{background:#2563EB;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.4);}
+
+.sb-divider{height:1px;background:rgba(255,255,255,0.07);margin:8px 14px;}
+.sb-footer{margin-top:auto;padding:14px 12px;}
+.sb-card{background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;}
+.sb-card p{font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;}
+.sb-card strong{color:rgba(255,255,255,0.45);font-weight:600;}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.main::-webkit-scrollbar{width:5px;}
+.main::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+
+/* Mode screens */
+.mode-screen{display:none;flex-direction:column;flex:1;}
+.mode-screen.active{display:flex;}
+
+/* ── Panels ── */
+.panel{background:var(--panel);border-bottom:1px solid var(--border);}
+.panel-hd{display:flex;align-items:center;padding:13px 28px;border-bottom:1px solid var(--border);gap:10px;}
+.panel-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-0.1px;}
+.panel-title svg{color:var(--blue);flex-shrink:0;}
+.panel-desc{font-size:12px;color:var(--text-muted);margin-left:auto;}
+.panel-body{padding:20px 28px;}
+
+/* ── Tabs ── */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:#FAFBFF;padding:0 28px;}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;font-size:12.5px;font-weight:500;color:var(--text-muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Outfit',sans-serif;transition:all 0.15s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.tab-btn svg{width:13px;height:13px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── Hint bar ── */
+.hint{background:var(--blue-lt);border:1px solid var(--blue-bd);border-radius:7px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#1E40AF;line-height:1.55;}
+.hint svg{flex-shrink:0;margin-top:1px;color:var(--blue);}
+kbd{background:#DBEAFE;color:#23bdff;border:1px solid #BFDBFE;border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--mono);}
+
+/* ── Spreadsheet ── */
+.sheet-outer{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.sheet-scroll{max-height:300px;overflow-y:auto;}
+.sheet-scroll::-webkit-scrollbar{width:4px;}
+.sheet-scroll::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+.sheet-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
+.sheet-table col.cn{width:40px;}.sheet-table col.ce{width:calc(50% - 20px - 18px);}.sheet-table col.cc{width:calc(50% - 20px - 18px);}.sheet-table col.ci{width:36px;}
+.sheet-table thead{position:sticky;top:0;z-index:2;}
+.sheet-table thead tr{background:#F5F7FB;}
+.sheet-table thead th{padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text-mid);border-bottom:1.5px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;user-select:none;}
+.sheet-table thead th:last-child{border-right:none;text-align:center;}
+.th-n{text-align:center !important;background:#EEF2F7;color:var(--text-muted);}
+.s-row{border-bottom:1px solid #F0F3F8;transition:background 0.08s;}
+.s-row:hover{background:#F8FAFE;}
+.s-row:last-child{border-bottom:none;}
+.s-row.r-ok{background:#F0FDF4;}.s-row.r-warn{background:#FFFBEB;}.s-row.r-err{background:#FEF2F2;}
+.td-n{text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-muted);background:#F5F7FB;border-right:1px solid var(--border);padding:0;user-select:none;vertical-align:middle;}
+.td-cell{padding:0;border-right:1px solid var(--border);}
+.td-icon{width:36px;text-align:center;vertical-align:middle;padding:0 4px;}
+.sinput{width:100%;border:none;background:transparent;font-family:var(--mono);font-size:12px;color:var(--text);padding:7px 10px;outline:none;line-height:1.4;display:block;}
+.sinput::placeholder{color:#CBD5E1;font-family:'Outfit',sans-serif;font-size:11.5px;font-style:italic;}
+.sinput:focus{background:#EFF6FF;}
+.sinput.code-inp{text-transform:uppercase;letter-spacing:0.8px;}
+.sheet-foot{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#F5F7FB;border-top:1px solid var(--border);}
+.sstats{display:flex;gap:14px;align-items:center;}
+.ss{font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.ss strong{color:var(--text);font-weight:600;font-size:12px;}
+.ss.ok strong{color:var(--green);}.ss.warn strong{color:var(--amber);}
+.ss-sep{color:var(--border-mid);font-size:11px;}
+
+/* ── Upload zone ── */
+.upload-z{border:1.5px dashed var(--border-mid);border-radius:var(--r);padding:32px 24px;text-align:center;cursor:pointer;transition:all 0.15s;background:#FAFBFF;}
+.upload-z:hover,.upload-z.drag{border-color:var(--blue);background:var(--blue-lt);}
+.upload-z-icon{display:flex;justify-content:center;margin-bottom:10px;color:var(--text-muted);}
+.upload-z-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.upload-z-sub{font-size:12px;color:var(--text-muted);}
+.upload-tags{display:flex;justify-content:center;gap:5px;margin-top:12px;}
+.ftag{background:#fff;border:1px solid var(--border);color:var(--text-mid);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px;font-family:var(--mono);}
+input[type=file].hidden{display:none;}
+
+/* col mapper */
+.col-mapper{display:none;background:#F5F7FB;border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-top:14px;}
+.col-mapper.visible{display:block;}
+.mgrid{display:grid;grid-template-columns:1fr 22px 1fr;gap:12px;align-items:end;}
+.arrow-c{display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding-bottom:2px;}
+.flabel{font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:5px;margin-bottom:6px;}
+.flabel svg{color:var(--blue);}
+select{width:100%;background:var(--panel);border:1px solid var(--border-mid);border-radius:6px;color:var(--text);font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:500;padding:7px 26px 7px 10px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:border-color 0.12s;}
+select:focus{border-color:var(--blue);}
+
+/* ── Form fields ── */
+.field-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.field-label{font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:5px;}
+.field-label svg{color:var(--blue);}
+.field-label .req{color:var(--red);margin-left:2px;}
+.finput{width:100%;background:var(--panel);border:1px solid var(--border-mid);border-radius:6px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;padding:9px 13px;outline:none;transition:border-color 0.12s;}
+.finput:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.finput::placeholder{color:var(--text-muted);}
+
+/* recipient tag input */
+.rcpt-wrap{background:var(--panel);border:1px solid var(--border-mid);border-radius:6px;padding:6px 10px;min-height:42px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;cursor:text;transition:border-color 0.12s;}
+.rcpt-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.rcpt-tag{display:inline-flex;align-items:center;gap:4px;background:var(--blue-lt);border:1px solid var(--blue-bd);color:#1E40AF;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:500;white-space:nowrap;font-family:var(--mono);}
+.rcpt-tag button{border:none;background:none;cursor:pointer;color:#3B82F6;padding:0;width:14px;height:14px;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:background 0.1s;}
+.rcpt-tag button:hover{background:rgba(37,99,235,0.15);}
+.rcpt-input{border:none;outline:none;font-family:var(--mono);font-size:12px;color:var(--text);background:transparent;flex:1;min-width:180px;padding:3px 2px;}
+.rcpt-input::placeholder{color:var(--text-muted);font-family:'Outfit',sans-serif;font-size:12px;}
+.rcpt-count{font-size:11px;color:var(--text-muted);padding:0 4px;white-space:nowrap;}
+
+/* ── Rich editor toolbar ── */
+.editor-wrap{border:1px solid var(--border-mid);border-radius:var(--r);overflow:hidden;transition:border-color 0.12s;}
+.editor-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.editor-toolbar{display:flex;align-items:center;gap:2px;padding:6px 10px;background:#F5F7FB;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.tb-btn{width:28px;height:28px;border:none;background:transparent;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-mid);transition:all 0.12s;}
+.tb-btn:hover{background:#E2E8F0;color:var(--text);}
+.tb-btn.active{background:var(--blue-lt);color:var(--blue);}
+.tb-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+.editor-body{min-height:220px;max-height:340px;overflow-y:auto;padding:14px 16px;outline:none;font-family:'Outfit',sans-serif;font-size:13.5px;line-height:1.75;color:var(--text);background:var(--panel);}
+.editor-body:empty::before{content:attr(data-placeholder);color:var(--text-muted);pointer-events:none;}
+.editor-body::-webkit-scrollbar{width:4px;}
+.editor-body::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+.editor-body a{color:var(--blue);}
+.editor-body blockquote{border-left:3px solid var(--border-mid);padding-left:12px;color:var(--text-mid);margin:8px 0;}
+.editor-footer{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#F5F7FB;border-top:1px solid var(--border);}
+.char-count{font-size:11px;color:var(--text-muted);margin-left:auto;font-family:var(--mono);}
+
+/* color picker */
+.color-picker-wrap{position:relative;display:inline-block;}
+.color-picker-wrap input[type=color]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;}
+
+/* ── Attachments ── */
+.attach-zone{border:1.5px dashed var(--border-mid);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;background:#FAFBFF;}
+.attach-zone:hover{border-color:var(--blue);background:var(--blue-lt);}
+.attach-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.attach-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#F5F7FB;border:1px solid var(--border);border-radius:6px;}
+.attach-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;font-family:var(--mono);}
+.attach-icon.pdf{background:#FEF2F2;color:var(--red);}
+.attach-icon.img{background:var(--purple-lt);color:var(--purple);}
+.attach-icon.xlsx{background:var(--green-lt);color:var(--green);}
+.attach-icon.word{background:var(--blue-lt);color:var(--blue);}
+.attach-icon.def{background:#F5F7FB;color:var(--text-muted);}
+.attach-info{flex:1;min-width:0;}
+.attach-name{font-size:12.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.attach-size{font-size:11px;color:var(--text-muted);}
+.attach-rm{border:none;background:none;cursor:pointer;color:var(--text-muted);width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.12s;}
+.attach-rm:hover{background:var(--red-lt);color:var(--red);}
+.attach-total{font-size:11.5px;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:5px;}
+
+/* ── Textarea note ── */
+.note-f{width:100%;background:var(--panel);border:1px solid var(--border-mid);border-radius:7px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;line-height:1.65;padding:10px 14px;resize:vertical;min-height:70px;outline:none;transition:border-color 0.12s;}
+.note-f:focus{border-color:var(--blue);}
+.note-f::placeholder{color:var(--text-muted);font-size:12px;}
+
+/* ── Toolbar bar ── */
+.toolbar{display:flex;align-items:center;gap:10px;padding:11px 28px;border-bottom:1px solid var(--border);background:#FAFBFF;}
+.tstats{display:flex;gap:14px;align-items:center;}
+.tst{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.tst strong{color:var(--text);font-weight:600;font-size:13px;}
+.tst.ok strong{color:var(--green);}.tst.err strong{color:var(--red);}
+.tsep{color:var(--border-mid);font-size:12px;}
+.ml-auto{margin-left:auto;}
+
+/* ── Result table ── */
+.res-outer{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.res-scroll{max-height:260px;overflow-y:auto;}
+.res-scroll::-webkit-scrollbar{width:4px;}
+.res-scroll::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+table.rt{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
+.rt col.c1{width:40px;}.rt col.c2{width:55%;}.rt col.c3{width:110px;}
+.rt thead{position:sticky;top:0;z-index:2;}
+.rt thead tr{background:#F5F7FB;}
+.rt thead th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-mid);border-bottom:1.5px solid var(--border);border-right:1px solid var(--border);}
+.rt thead th:last-child{border-right:none;}
+.rt thead th.th-c{text-align:center;background:#EEF2F7;}
+.rt tbody tr{border-bottom:1px solid #F0F3F8;transition:background 0.08s;}
+.rt tbody tr:hover{background:#FAFBFE;}
+.rt tbody tr:last-child{border-bottom:none;}
+.rt tbody tr.row-ok{background:var(--green-lt);}
+.rt tbody tr.row-err{background:var(--red-lt);}
+.rt tbody td{padding:8px 12px;color:var(--text);vertical-align:middle;border-right:1px solid #F0F3F8;}
+.rt tbody td:last-child{border-right:none;}
+.rtn{text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-muted);background:#F5F7FB;border-right:1px solid var(--border) !important;}
+.rte{font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rtc{font-family:var(--mono);font-size:12px;color:var(--blue);font-weight:600;}
+
+.spill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11.5px;font-weight:500;white-space:nowrap;}
+.spill.pending{background:#F1F5F9;color:#64748B;}
+.spill.ok{background:var(--green-lt);color:var(--green);}
+.spill.err{background:var(--red-lt);color:var(--red);}
+.spill svg{width:10px;height:10px;}
+
+/* ── Progress ── */
+.prog{display:none;background:var(--panel);border-bottom:1px solid var(--border);}
+.prog.on{display:block;}
+.prog-in{padding:20px 28px;}
+.prog-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.prog-lbl{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;}
+.prog-pct{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--blue);}
+.prog-track{background:#EDF1F7;border-radius:99px;height:6px;overflow:hidden;border:1px solid var(--border);}
+.prog-fill{height:100%;background:linear-gradient(90deg,#2563EB,#0EA5E9,#10B981);border-radius:99px;transition:width 0.4s ease;width:0%;}
+.prog-stats{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-top:14px;}
+.ps{flex:1;text-align:center;padding:10px 8px;border-right:1px solid var(--border);background:#FAFBFF;}
+.ps:last-child{border-right:none;}
+.ps-v{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);display:block;}
+.ps-l{font-size:10px;color:var(--text-muted);font-weight:600;margin-top:2px;display:block;text-transform:uppercase;letter-spacing:0.8px;}
+.ps.ok .ps-v{color:var(--green);}.ps.err .ps-v{color:var(--red);}.ps.tot .ps-v{color:var(--blue);}
+.log-box{background:#0D1B35;border-top:1px solid var(--border);height:130px;overflow-y:auto;padding:10px 18px;font-family:var(--mono);font-size:11.5px;}
+.log-box::-webkit-scrollbar{width:3px;}
+.log-box::-webkit-scrollbar-thumb{background:#1E3A5F;border-radius:2px;}
+.log-line{display:flex;gap:10px;padding:2px 0;line-height:1.55;}
+.log-ts{color:#2D4A6B;flex-shrink:0;}
+.log-line.ok .log-msg{color:#34D399;}.log-line.err .log-msg{color:#F87171;}.log-line.info .log-msg{color:#60A5FA;}
+
+/* ── Alerts ── */
+.alert{border-radius:7px;padding:10px 14px;font-size:12.5px;line-height:1.55;display:flex;align-items:flex-start;gap:8px;margin-top:10px;}
+.alert svg{flex-shrink:0;margin-top:1px;}
+.a-warn{background:var(--amber-lt);border:1px solid #FDE68A;color:#92400E;}
+.a-success{background:var(--green-lt);border:1px solid #BBF7D0;color:#166534;}
+.a-error{background:var(--red-lt);border:1px solid #FECACA;color:#991B1B;}
+.a-info{background:var(--blue-lt);border:1px solid var(--blue-bd);color:#1E40AF;}
+
+/* ── Buttons ── */
+button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;font-weight:500;transition:all 0.15s;border-radius:6px;letter-spacing:0.1px;}
+.btn-blue{background:var(--blue);color:#fff;font-size:13px;font-weight:600;padding:8px 18px;box-shadow:0 1px 3px rgba(37,99,235,0.25);}
+.btn-blue:hover:not(:disabled){background:var(--blue-dk);box-shadow:0 3px 8px rgba(37,99,235,0.3);}
+.btn-blue:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.btn-green{background:var(--green);color:#fff;font-size:13px;font-weight:600;padding:8px 18px;box-shadow:0 1px 3px rgba(22,163,74,0.2);}
+.btn-green:hover:not(:disabled){background:#15803D;box-shadow:0 3px 8px rgba(22,163,74,0.25);}
+.btn-green:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.btn-out{background:var(--panel);border:1.5px solid var(--border-mid);color:var(--text-mid);font-size:12.5px;padding:7px 14px;}
+.btn-out:hover{background:#F5F7FB;color:var(--text);border-color:#94A3B8;}
+.btn-ghost{background:transparent;color:var(--text-muted);font-size:11.5px;padding:5px 10px;border:1px solid transparent;}
+.btn-ghost:hover{background:#EEF2F7;color:var(--text);}
+
+/* ── Two-col form layout ── */
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,26,60,0.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;width:700px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.15);}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.modal-title{font-size:13.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.modal-body{flex:1;overflow:hidden;}
+.modal-body iframe{width:100%;height:100%;min-height:500px;border:none;display:block;}
+.btn-close{width:28px;height:28px;background:#F1F5F9;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.12s;}
+.btn-close:hover{background:var(--border-mid);}
+
+/* ── Misc ── */
+.empty-s{padding:40px 24px;text-align:center;color:var(--text-muted);}
+.empty-s svg{opacity:0.25;margin-bottom:10px;}
+.empty-s p{font-size:12.5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin 0.7s linear infinite;display:inline-flex;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+.flex-gap{display:flex;gap:8px;}
+</style>
+</head>
+<body>
+
+<!-- ── Titlebar ── -->
+<header class="titlebar">
+  <div class="tb-brand">
+    <img src="https://shd-technology.co.th/images/logo.png" alt="SHD" class="tb-logo"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="tb-logo-fb" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+    </div>
+  </div>
+  <div class="tb-center">
+    <div class="breadcrumb">
+      <strong>SHD Technology</strong><span class="bc-sep">/</span>
+      <span id="breadcrumbLabel">Mailer — Access Code Sender</span>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="status-dot-badge"><span class="dot"></span>Resend API · Connected</div>
+  </div>
+</header>
+
+<!-- ── App ── -->
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-accent"></div>
+
+    <!-- Mode pills -->
+    <div style="padding:12px 10px 4px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.22);padding:0 2px;margin-bottom:6px;">โหมดการใช้งาน</div>
+      <div class="mode-pills">
+        <button class="mode-pill active" onclick="setMode('access',this)" id="modeBtn0">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Access Code
+        </button>
+        <button class="mode-pill" onclick="setMode('compose',this)" id="modeBtn1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Compose
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <!-- Access Code steps -->
+    <div id="sidebarAccess">
+      <div class="sb-section">
+        <span class="sb-label">ขั้นตอน</span>
+        <button class="nav-item active" onclick="scrollToId('panelInput')">
+          <span class="nav-num">1</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          นำเข้าข้อมูล
+        </button>
+        <button class="nav-item" onclick="scrollToId('panelNote')">
+          <span class="nav-num">2</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          หมายเหตุเพิ่มเติม
+        </button>
+        <button class="nav-item" onclick="scrollToId('panelReview')">
+          <span class="nav-num">3</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          ตรวจสอบ &amp; ส่ง
+        </button>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section">
+        <span class="sb-label">เครื่องมือ</span>
+        <button class="nav-item" onclick="openPreviewModal()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          ดูตัวอย่างอีเมล
+        </button>
+        <button class="nav-item" onclick="clearAccess()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          ล้างข้อมูล
+        </button>
+      </div>
+    </div>
+
+    <!-- Compose steps -->
+    <div id="sidebarCompose" style="display:none;">
+      <div class="sb-section">
+        <span class="sb-label">ขั้นตอน</span>
+        <button class="nav-item active" onclick="scrollToId('composeRecipients')">
+          <span class="nav-num">1</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          ผู้รับอีเมล
+        </button>
+        <button class="nav-item" onclick="scrollToId('composeSubject')">
+          <span class="nav-num">2</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+          หัวข้อ &amp; ผู้ส่ง
+        </button>
+        <button class="nav-item" onclick="scrollToId('composeBody')">
+          <span class="nav-num">3</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          เนื้อหาอีเมล
+        </button>
+        <button class="nav-item" onclick="scrollToId('composeAttach')">
+          <span class="nav-num">4</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          แนบไฟล์
+        </button>
+        <button class="nav-item" onclick="scrollToId('composeSend')">
+          <span class="nav-num">5</span>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          ส่งอีเมล
+        </button>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section">
+        <span class="sb-label">เครื่องมือ</span>
+        <button class="nav-item" onclick="openComposePreview()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          ดูตัวอย่างอีเมล
+        </button>
+        <button class="nav-item" onclick="clearCompose()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          ล้างแบบฟอร์ม
+        </button>
+        <button class="nav-item" onclick="importRecipientsFromCSV()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          นำเข้า CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-card">
+        <p><strong>From</strong><br>shd-technology.co.th<br><strong>Region</strong><br>Tokyo · ap-northeast-1</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+
+    <!-- ════════ MODE: ACCESS CODE ════════ -->
+    <div class="mode-screen active" id="screenAccess">
+
+      <!-- Panel 1: Input -->
+      <div class="panel" id="panelInput">
+        <div class="panel-hd">
+          <div class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+            นำเข้าข้อมูลพนักงาน
+          </div>
+          <div class="panel-desc">วางในตาราง หรืออัพโหลดไฟล์ CSV / XLSX</div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('manual',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            กรอกทีละแถว
+          </button>
+          <button class="tab-btn" onclick="switchTab('file',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            อัพโหลดไฟล์
+          </button>
+        </div>
+        <div class="tab-pane active" id="tab-manual">
+          <div class="panel-body">
+            <div class="hint">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>วางหลายรายการด้วย <kbd>Ctrl+V</kbd> — ระบบแจกลงแถวอัตโนมัติ · กด <kbd>↓</kbd> หรือ <kbd>Enter</kbd> เพื่อเลื่อนแถว</span>
+            </div>
+            <div class="sheet-outer">
+              <div class="sheet-scroll">
+                <table class="sheet-table" id="sheetTable">
+                  <colgroup><col class="cn"><col class="ce"><col class="cc"><col class="ci"></colgroup>
+                  <thead><tr>
+                    <th class="th-n">#</th>
+                    <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Address</div></th>
+                    <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Access Code</div></th>
+                    <th style="text-align:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></th>
+                  </tr></thead>
+                  <tbody id="sheetBody"></tbody>
+                </table>
+              </div>
+              <div class="sheet-foot">
+                <div class="sstats">
+                  <span class="ss">รายการ: <strong id="sTotal">0</strong></span>
+                  <span class="ss-sep">·</span>
+                  <span class="ss ok">พร้อมส่ง: <strong id="sFilled">0</strong></span>
+                  <span class="ss-sep">·</span>
+                  <span class="ss warn">ไม่สมบูรณ์: <strong id="sIncomplete">0</strong></span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-ghost" onclick="addRows(10)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เพิ่ม 10 แถว</button>
+                  <button class="btn-ghost" onclick="clearSheet()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H5L4 6"/></svg>ล้าง</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="tab-file">
+          <div class="panel-body">
+            <div class="upload-z" id="uploadZone"
+                 onclick="g('fileInput').click()"
+                 ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+              <div class="upload-z-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+              <div class="upload-z-title">คลิกหรือลากไฟล์มาวางที่นี่</div>
+              <div class="upload-z-sub">ไฟล์ตาราง · ขนาดสูงสุด 10 MB</div>
+              <div class="upload-tags"><span class="ftag">.csv</span><span class="ftag">.xlsx</span><span class="ftag">.xls</span></div>
+            </div>
+            <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
+            <div class="col-mapper" id="colMapper">
+              <div class="flabel" style="margin-bottom:10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>เชื่อมคอลัมน์กับข้อมูล</div>
+              <div class="mgrid">
+                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>คอลัมน์อีเมล</div><select id="emailColSelect" onchange="remapFile()"></select></div>
+                <div class="arrow-c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>คอลัมน์รหัส</div><select id="codeColSelect" onchange="remapFile()"></select></div>
+              </div>
+              <div id="fileAlert" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Note -->
+      <div class="panel" id="panelNote">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>หมายเหตุเพิ่มเติม</div>
+          <div class="panel-desc">จะแสดงในอีเมลที่พนักงานได้รับ (ไม่บังคับ)</div>
+        </div>
+        <div class="panel-body">
+          <div class="flabel" style="margin-bottom:8px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>หมายเหตุถึงพนักงาน</div>
+          <textarea class="note-f" id="senderNote" placeholder="เช่น: กรุณาเปลี่ยนรหัสผ่านภายใน 24 ชั่วโมง · ติดต่อ IT ที่ ext. 1234"></textarea>
+        </div>
+      </div>
+
+      <!-- Panel 3: Review & Send -->
+      <div class="panel" id="panelReview">
+        <div class="panel-hd"><div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>ตรวจสอบรายการ &amp; ส่ง</div></div>
+        <div class="toolbar">
+          <div class="tstats">
+            <span class="tst">ทั้งหมด: <strong id="tTotal">—</strong></span>
+            <span class="tsep">·</span><span class="tst ok">สำเร็จ: <strong id="tOk">—</strong></span>
+            <span class="tsep">·</span><span class="tst err">ล้มเหลว: <strong id="tErr">—</strong></span>
+          </div>
+          <div class="ml-auto flex-gap">
+            <button class="btn-out" onclick="buildPreview()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>โหลดและตรวจสอบรายการ</button>
+            <button class="btn-blue" id="sendBtn" onclick="startSending()" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>ส่ง Email ทั้งหมด</button>
+          </div>
+        </div>
+        <div id="alertBanner" style="padding:0 28px;"></div>
+        <div class="panel-body" style="padding-top:14px;">
+          <div class="res-outer"><div class="res-scroll">
+            <table class="rt" id="resultsTable">
+              <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
+              <thead><tr>
+                <th class="th-c">#</th>
+                <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</div></th>
+                <th>สถานะ</th>
+              </tr></thead>
+              <tbody id="resultsBody"><tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>กด "โหลดและตรวจสอบรายการ" เพื่อดูรายการก่อนส่ง</p></div></td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Progress (access code) -->
+      <div class="prog" id="progPanel">
+        <div class="prog-in">
+          <div class="prog-top"><div class="prog-lbl" id="progLabel"><span class="spin" id="progSpin"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.48-4"/></svg></span>กำลังส่ง Email...</div><div class="prog-pct" id="progPct">0%</div></div>
+          <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+          <div class="prog-stats">
+            <div class="ps tot"><span class="ps-v" id="pTot">0</span><span class="ps-l">ทั้งหมด</span></div>
+            <div class="ps ok"><span class="ps-v" id="pOk">0</span><span class="ps-l">สำเร็จ</span></div>
+            <div class="ps err"><span class="ps-v" id="pErr">0</span><span class="ps-l">ล้มเหลว</span></div>
+          </div>
+        </div>
+        <div class="log-box" id="logBox"></div>
+      </div>
+      <div style="height:36px;flex-shrink:0;border-top:1px solid var(--border);background:#EDF1F7;"></div>
+    </div>
+
+    <!-- ════════ MODE: COMPOSE ════════ -->
+    <div class="mode-screen" id="screenCompose">
+
+      <!-- Panel: Recipients -->
+      <div class="panel" id="composeRecipients">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>ผู้รับอีเมล</div>
+          <div class="panel-desc">วางหลายอีเมลด้วย Enter หรือ , หรืออัพโหลด CSV</div>
+        </div>
+        <div class="panel-body">
+          <div class="field-group">
+            <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>ส่งถึง (To)<span class="req">*</span></div>
+            <div class="rcpt-wrap" id="toWrap" onclick="g('toInput').focus()">
+              <input class="rcpt-input" id="toInput" placeholder="พิมพ์อีเมลแล้วกด Enter หรือ , หรือ Space เพื่อเพิ่ม..." onkeydown="handleRcptKey(event,'to')" oninput="handleRcptInput(event,'to')">
+              <span class="rcpt-count" id="toCount"></span>
+            </div>
+          </div>
+          <div class="form-2col">
+            <div class="field-group">
+              <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>CC (Carbon Copy)</div>
+              <div class="rcpt-wrap" id="ccWrap" onclick="g('ccInput').focus()">
+                <input class="rcpt-input" id="ccInput" placeholder="อีเมล CC..." onkeydown="handleRcptKey(event,'cc')" oninput="handleRcptInput(event,'cc')">
+                <span class="rcpt-count" id="ccCount"></span>
+              </div>
+            </div>
+            <div class="field-group">
+              <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>BCC (Blind Carbon Copy)</div>
+              <div class="rcpt-wrap" id="bccWrap" onclick="g('bccInput').focus()">
+                <input class="rcpt-input" id="bccInput" placeholder="อีเมล BCC..." onkeydown="handleRcptKey(event,'bcc')" oninput="handleRcptInput(event,'bcc')">
+                <span class="rcpt-count" id="bccCount"></span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="btn-ghost" onclick="g('csvRcptInput').click()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>นำเข้าจาก CSV</button>
+            <input type="file" id="csvRcptInput" class="hidden" accept=".csv,.txt" onchange="importCSVRecipients(event)">
+            <button class="btn-ghost" onclick="clearRcpt('to')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H5L4 6"/></svg>ล้างรายชื่อผู้รับ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Subject & Sender -->
+      <div class="panel" id="composeSubject">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>หัวข้ออีเมล &amp; ข้อมูลผู้ส่ง</div>
+        </div>
+        <div class="panel-body">
+          <div class="field-group">
+            <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>หัวข้ออีเมล (Subject)<span class="req">*</span></div>
+            <input class="finput" id="emailSubject" type="text" placeholder="เช่น: ประกาศสำคัญจาก SHD Technology | กรุณาอ่านก่อนวันที่ 31 มี.ค.">
+          </div>
+          <div class="form-3col">
+            <div class="field-group">
+              <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>ชื่อผู้ส่ง</div>
+              <input class="finput" id="fromName" type="text" placeholder="SHD Technology" value="SHD Technology">
+            </div>
+            <div class="field-group">
+              <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Reply-To (ตอบกลับไปที่)</div>
+              <input class="finput" id="replyTo" type="email" placeholder="admin@shd-technology.co.th">
+            </div>
+            <div class="field-group">
+              <div class="field-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>กำหนดส่ง</div>
+              <input class="finput" id="scheduleTime" type="datetime-local" style="font-family:var(--mono);font-size:12px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Body (Rich Editor) -->
+      <div class="panel" id="composeBody">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>เนื้อหาอีเมล</div>
+          <div class="panel-desc">แก้ไขข้อความด้วย Rich Text Editor</div>
+        </div>
+        <div class="panel-body">
+          <div class="editor-wrap">
+            <!-- Toolbar -->
+            <div class="editor-toolbar" id="editorToolbar">
+              <!-- Text style -->
+              <select onchange="execFmt('formatBlock',this.value);this.selectedIndex=0;" style="width:auto;padding:4px 24px 4px 8px;font-size:11.5px;border-radius:4px;height:28px;background-color:#F5F7FB;border-color:var(--border);">
+                <option value="" disabled selected>ย่อหน้า</option>
+                <option value="p">Normal</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+                <option value="blockquote">Blockquote</option>
+              </select>
+              <div class="tb-sep"></div>
+              <!-- Bold Italic Underline Strike -->
+              <button class="tb-btn" onclick="execFmt('bold')" title="Bold"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('italic')" title="Italic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('underline')" title="Underline"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="4" y1="20" x2="20" y2="20"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('strikeThrough')" title="Strikethrough"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="12" x2="7" y2="12"/><path d="M16 6C16 6 14.5 4 12 4C9 4 7 6 7 8C7 10.5 9 11.5 12 12"/><path d="M8 18C8 18 9.5 20 12 20C15 20 17 18 17 16C17 13.5 15 12.5 12 12"/></svg></button>
+              <div class="tb-sep"></div>
+              <!-- Alignment -->
+              <button class="tb-btn" onclick="execFmt('justifyLeft')" title="Align Left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('justifyCenter')" title="Center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('justifyRight')" title="Align Right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
+              <div class="tb-sep"></div>
+              <!-- Lists -->
+              <button class="tb-btn" onclick="execFmt('insertUnorderedList')" title="Bullet list"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+              <button class="tb-btn" onclick="execFmt('insertOrderedList')" title="Numbered list"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
+              <div class="tb-sep"></div>
+              <!-- Link, Image, HR, Color -->
+              <button class="tb-btn" onclick="insertLink()" title="Insert link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+              <button class="tb-btn" onclick="insertHR()" title="Divider line"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/></svg></button>
+              <div class="tb-sep"></div>
+              <!-- Font color -->
+              <div class="color-picker-wrap tb-btn" title="Text color" style="position:relative;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/><line x1="13.5" y1="6.5" x2="17.5" y2="10.5"/></svg>
+                <input type="color" value="#1A2236" onchange="execFmt('foreColor',this.value)" title="Text color">
+              </div>
+              <!-- Highlight -->
+              <div class="color-picker-wrap tb-btn" title="Highlight" style="position:relative;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <input type="color" value="#FBBF24" onchange="execFmt('hiliteColor',this.value)" title="Highlight">
+              </div>
+              <div class="tb-sep"></div>
+              <button class="tb-btn" onclick="execFmt('removeFormat')" title="Clear formatting"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3H7L3 17h6l1 4 4-4h4l4-14h-5z"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+            </div>
+
+            <!-- Editor body -->
+            <div class="editor-body" id="emailBody" contenteditable="true"
+                 data-placeholder="พิมพ์เนื้อหาอีเมลที่นี่... รองรับ Bold, Italic, List, ลิงก์, สี, ฯลฯ"
+                 oninput="updateCharCount()"></div>
+
+            <div class="editor-footer">
+              <button class="btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="insertTemplate('greeting')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                คำทักทาย
+              </button>
+              <button class="btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="insertTemplate('signature')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg>
+                ลายเซ็น
+              </button>
+              <button class="btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="insertTemplate('table')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                ตาราง
+              </button>
+              <button class="btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="insertTemplate('button')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="8" rx="4"/></svg>
+                ปุ่ม CTA
+              </button>
+              <span class="char-count" id="charCount">0 ตัวอักษร</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Attachments -->
+      <div class="panel" id="composeAttach">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>แนบไฟล์</div>
+          <div class="panel-desc">รองรับหลายไฟล์ · สูงสุด 25 MB ต่อไฟล์</div>
+        </div>
+        <div class="panel-body">
+          <div class="attach-zone" onclick="g('attachInput').click()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">คลิกเพื่อเลือกไฟล์แนบ</div>
+              <div style="font-size:12px;color:var(--text-muted);">PDF, Word, Excel, รูปภาพ, ZIP และอื่นๆ</div>
+            </div>
+            <button class="btn-out" style="margin-left:auto;pointer-events:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>เลือกไฟล์</button>
+          </div>
+          <input type="file" id="attachInput" class="hidden" multiple onchange="handleAttachments(event)">
+          <div class="attach-list" id="attachList"></div>
+          <div class="attach-total" id="attachTotal" style="display:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span id="attachTotalText"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Send -->
+      <div class="panel" id="composeSend">
+        <div class="panel-hd">
+          <div class="panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>ส่งอีเมล</div>
+        </div>
+        <div class="toolbar">
+          <div class="tstats">
+            <span class="tst">ผู้รับทั้งหมด: <strong id="cTotal">—</strong></span>
+            <span class="tsep">·</span><span class="tst ok">สำเร็จ: <strong id="cOk">—</strong></span>
+            <span class="tsep">·</span><span class="tst err">ล้มเหลว: <strong id="cErr">—</strong></span>
+          </div>
+          <div class="ml-auto flex-gap">
+            <button class="btn-out" onclick="openComposePreview()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>ดูตัวอย่าง</button>
+            <button class="btn-green" id="composeSendBtn" onclick="startComposeSend()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>ส่ง Email ทั้งหมด</button>
+          </div>
+        </div>
+        <div id="composeAlertBanner" style="padding:0 28px;"></div>
+        <div class="panel-body" style="padding-top:14px;">
+          <div class="res-outer"><div class="res-scroll">
+            <table class="rt" id="composeResultsTable">
+              <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
+              <thead><tr>
+                <th class="th-c">#</th>
+                <th>Email Address</th>
+                <th>สถานะ</th>
+              </tr></thead>
+              <tbody id="composeResultsBody"><tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><p>กด "ส่ง Email ทั้งหมด" เพื่อเริ่มส่ง</p></div></td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Progress (compose) -->
+      <div class="prog" id="composeProgPanel">
+        <div class="prog-in">
+          <div class="prog-top"><div class="prog-lbl" id="composeProgLabel"><span class="spin"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.48-4"/></svg></span>กำลังส่ง...</div><div class="prog-pct" id="composeProgPct">0%</div></div>
+          <div class="prog-track"><div class="prog-fill" id="composeProgFill"></div></div>
+          <div class="prog-stats">
+            <div class="ps tot"><span class="ps-v" id="cpTot">0</span><span class="ps-l">ทั้งหมด</span></div>
+            <div class="ps ok"><span class="ps-v" id="cpOk">0</span><span class="ps-l">สำเร็จ</span></div>
+            <div class="ps err"><span class="ps-v" id="cpErr">0</span><span class="ps-l">ล้มเหลว</span></div>
+          </div>
+        </div>
+        <div class="log-box" id="composeLogBox"></div>
+      </div>
+      <div style="height:36px;flex-shrink:0;border-top:1px solid var(--border);background:#EDF1F7;"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="previewModal" onclick="if(event.target.id==='previewModal')closeModal()">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="modalTitle">ตัวอย่างอีเมล</span></div>
+      <button class="btn-close" onclick="closeModal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body"><iframe id="previewFrame" src="about:blank"></iframe></div>
+  </div>
+</div>
+
+<script>
+// ═══ HELPERS ═══════════════════════════════════════════════════
+function g(id){return document.getElementById(id);}
+function v(id){return(g(id)?.value||'').trim();}
+function setText(id,val){const e=g(id);if(e)e.textContent=val;}
+function svgOk(){return`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;}
+function svgErr(){return`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;}
+function svgWarn(){return`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;}
+function aIcon(cls){
+  const icons={
+    'a-warn':`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    'a-success':`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+    'a-error':`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    'a-info':`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  };
+  return icons[cls]||icons['a-info'];
+}
+function showBanner(bannerId,cls,msg){g(bannerId).innerHTML=`<div class="alert ${cls}" style="margin:10px 0 0;">${aIcon(cls)}<span>${msg}</span></div>`;}
+function clearBanner(bannerId){g(bannerId).innerHTML='';}
+function scrollToId(id){g(id)?.scrollIntoView({behavior:'smooth'});}
+function addLog(boxId,type,msg){
+  const lb=g(boxId);
+  const ts=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d=document.createElement('div');d.className=`log-line ${type}`;
+  d.innerHTML=`<span class="log-ts">${ts}</span><span class="log-msg">${msg}</span>`;
+  lb.appendChild(d);lb.scrollTop=lb.scrollHeight;
+}
+
+// ═══ MODE SWITCH ═══════════════════════════════════════════════
+function setMode(mode, el){
+  document.querySelectorAll('.mode-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.mode-screen').forEach(s=>s.classList.remove('active'));
+  g(mode==='access'?'screenAccess':'screenCompose').classList.add('active');
+  g('sidebarAccess').style.display = mode==='access'?'block':'none';
+  g('sidebarCompose').style.display= mode==='compose'?'block':'none';
+  g('breadcrumbLabel').textContent = mode==='access'
+    ? 'Mailer — Access Code Sender'
+    : 'Mailer — Email Composer';
+  g('mainArea').scrollTo(0,0);
+}
+
+// ═══ ACCESS CODE: SHEET ═══════════════════════════════════════
+const INIT_ROWS=20;
+let employees=[], fileRows=[], fileEmailCol=-1, fileCodeCol=-1, currentTab='manual';
+
+function initSheet(){
+  g('sheetBody').innerHTML='';
+  for(let i=0;i<INIT_ROWS;i++) createRow(i);
+  syncStats();
+}
+function createRow(i){
+  const tr=document.createElement('tr');tr.className='s-row';tr.id=`sr-${i}`;
+  tr.innerHTML=`<td class="td-n">${String(i+1).padStart(2,'0')}</td>
+    <td class="td-cell"><input class="sinput" id="se-${i}" placeholder="email@company.com" oninput="onCell(${i})" onpaste="onPaste(event,${i},'e')" onkeydown="onKey(event,${i},'e')"></td>
+    <td class="td-cell"><input class="sinput code-inp" id="sc-${i}" placeholder="ACCESS-CODE" oninput="onCell(${i})" onpaste="onPaste(event,${i},'c')" onkeydown="onKey(event,${i},'c')"></td>
+    <td class="td-icon"><span id="si-${i}"></span></td>`;
+  g('sheetBody').appendChild(tr);
+}
+function addRows(n){const len=g('sheetBody').querySelectorAll('tr').length;for(let i=len;i<len+n;i++)createRow(i);}
+function onCell(i){
+  const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
+  const row=g(`sr-${i}`),icon=g(`si-${i}`);if(!row)return;
+  row.classList.remove('r-ok','r-warn','r-err');
+  if(e&&c){if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){icon.innerHTML=svgOk();row.classList.add('r-ok');}else{icon.innerHTML=svgErr();row.classList.add('r-err');}}
+  else if(e||c){icon.innerHTML=svgWarn();row.classList.add('r-warn');}
+  else icon.innerHTML='';
+  const total=g('sheetBody').querySelectorAll('tr').length;
+  if(i===total-1&&(e||c))createRow(total);
+  syncStats();
+}
+function onKey(ev,i,col){
+  if(ev.key==='Enter'||(ev.key==='Tab'&&!ev.shiftKey&&col==='c')){ev.preventDefault();g(`se-${i+1}`)?.focus();}
+  if(ev.key==='ArrowDown'){ev.preventDefault();g(col==='e'?`se-${i+1}`:`sc-${i+1}`)?.focus();}
+  if(ev.key==='ArrowUp'){ev.preventDefault();g(col==='e'?`se-${i-1}`:`sc-${i-1}`)?.focus();}
+}
+function onPaste(ev,start,col){
+  ev.preventDefault();
+  const lines=(ev.clipboardData||window.clipboardData).getData('text').split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)return;
+  const cur=g('sheetBody').querySelectorAll('tr').length;
+  for(let i=cur;i<start+lines.length+2;i++)createRow(i);
+  lines.forEach((line,idx)=>{const inp=g(col==='e'?`se-${start+idx}`:`sc-${start+idx}`);if(inp){inp.value=col==='c'?line.toUpperCase():line;onCell(start+idx);}});
+  g(col==='e'?`se-${start+lines.length}`:`sc-${start+lines.length}`)?.focus();
+}
+function syncStats(){
+  let total=0,filled=0,incomplete=0;
+  g('sheetBody').querySelectorAll('tr').forEach((_,i)=>{
+    const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
+    if(e||c){total++;if(e&&c)filled++;else incomplete++;}
+  });
+  setText('sTotal',total);setText('sFilled',filled);setText('sIncomplete',incomplete);
+}
+function clearSheet(){g('sheetBody').innerHTML='';for(let i=0;i<INIT_ROWS;i++)createRow(i);syncStats();}
+function getSheetData(){
+  const rows=[];
+  g('sheetBody').querySelectorAll('tr').forEach((_,i)=>{
+    const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
+    if(e&&c)rows.push({email:e,code:c});
+  });
+  return rows;
+}
+
+// tabs
+function switchTab(id,el){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');g('tab-'+id).classList.add('active');currentTab=id;
+}
+
+// file upload
+function handleDragOver(e){e.preventDefault();g('uploadZone').classList.add('drag');}
+function handleDragLeave(){g('uploadZone').classList.remove('drag');}
+function handleDrop(e){e.preventDefault();g('uploadZone').classList.remove('drag');if(e.dataTransfer.files[0])uploadFile(e.dataTransfer.files[0]);}
+function handleFileSelect(e){if(e.target.files[0])uploadFile(e.target.files[0]);}
+async function uploadFile(file){
+  const zone=g('uploadZone');
+  zone.innerHTML=`<div class="upload-z-icon"><span class="spin"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.48-4"/></svg></span></div><div class="upload-z-title" style="color:var(--text-mid)">กำลังอ่านไฟล์...</div><div class="upload-z-sub">${file.name}</div>`;
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const r=await fetch('/api/parse-file',{method:'POST',body:fd});
+    const data=await safeJson(r);if(!r.ok||data.error)throw new Error(data.error||`HTTP ${r.status}`);
+    fileRows=data.rows;fileEmailCol=data.emailCol;fileCodeCol=data.codeCol;
+    zone.innerHTML=`<div class="upload-z-icon" style="color:var(--green)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/></svg></div><div class="upload-z-title" style="color:var(--green)">${file.name}</div><div class="upload-z-sub">${fileRows.length} แถว · คลิกเพื่อเปลี่ยน</div>`;
+    const es=g('emailColSelect'),cs=g('codeColSelect');es.innerHTML=cs.innerHTML='';
+    data.headers.forEach((h,i)=>{const l=h||`คอลัมน์ ${i+1}`;es.innerHTML+=`<option value="${i}" ${i===data.emailCol?'selected':''}>${l}</option>`;cs.innerHTML+=`<option value="${i}" ${i===data.codeCol?'selected':''}>${l}</option>`;});
+    g('colMapper').classList.add('visible');remapFile();
+  }catch(e){zone.innerHTML=`<div class="upload-z-icon" style="color:var(--red)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="upload-z-title" style="color:var(--red)">เกิดข้อผิดพลาด</div><div class="upload-z-sub">${e.message}</div>`;}
+}
+function remapFile(){
+  fileEmailCol=parseInt(g('emailColSelect').value);fileCodeCol=parseInt(g('codeColSelect').value);
+  const n=fileRows.slice(1).filter(r=>r[fileEmailCol]&&r[fileCodeCol]).length;
+  g('fileAlert').innerHTML=`<div class="alert a-info">${aIcon('a-info')}<span>พบ <strong>${n}</strong> รายการ — กด "โหลดและตรวจสอบรายการ"</span></div>`;
+}
+
+// build preview / send
+function buildPreview(){
+  let emps=[];
+  if(currentTab==='manual'){emps=getSheetData();if(!emps.length){showBanner('alertBanner','a-warn','กรุณากรอกข้อมูลก่อน');return;}}
+  else{if(!fileRows.length){showBanner('alertBanner','a-warn','กรุณาอัพโหลดไฟล์ก่อน');return;}emps=fileRows.slice(1).filter(r=>r[fileEmailCol]&&r[fileCodeCol]).map(r=>({email:String(r[fileEmailCol]).trim(),code:String(r[fileCodeCol]).trim()}));}
+  employees=emps;
+  g('resultsBody').innerHTML=employees.map((e,i)=>`<tr id="rr-${i}"><td class="rtn">${String(i+1).padStart(2,'0')}</td><td class="rte" title="${e.email}">${e.email}</td><td><span class="spill pending" id="rs-${i}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>รอส่ง</span></td></tr>`).join('');
+  setText('tTotal',employees.length);setText('tOk','—');setText('tErr','—');
+  g('sendBtn').disabled=employees.length===0;
+  if(employees.length)showBanner('alertBanner','a-success',`พร้อมส่ง <strong>${employees.length}</strong> รายการ — กด "ส่ง Email ทั้งหมด"`);
+  scrollToId('panelReview');
+}
+
+async function startSending(){
+  if(!employees.length)return;
+  const btn=g('sendBtn');btn.disabled=true;btn.innerHTML=`<span class="spin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.48-4"/></svg></span> กำลังส่ง...`;
+  const pp=g('progPanel');pp.classList.add('on');pp.scrollIntoView({behavior:'smooth',block:'start'});
+  setText('pTot',employees.length);setText('pOk','0');setText('pErr','0');
+  g('logBox').innerHTML='';setProgress('progFill','progPct',0);
+  addLog('logBox','info',`เริ่มส่ง ${employees.length} รายการ`);
+  try{
+    const resp=await fetch('/api/send-access-codes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({employees,senderNote:v('senderNote')})});
+    await readSSE(resp,ev=>{
+      if(ev.type==='progress'){
+        setProgress('progFill','progPct',Math.round((ev.success+ev.failed)/ev.total*100));
+        setText('pOk',ev.success);setText('pErr',ev.failed);setText('tOk',ev.success);setText('tErr',ev.failed);
+        const idx=employees.findIndex(e=>e.email===ev.email);
+        if(idx>=0){const s=g(`rs-${idx}`),row=g(`rr-${idx}`);if(s){if(ev.status==='ok'){s.className='spill ok';s.innerHTML=svgOk()+' สำเร็จ';row.classList.add('row-ok');}else{s.className='spill err';s.innerHTML=svgErr()+' ล้มเหลว';row.classList.add('row-err');}}}
+        addLog('logBox',ev.status==='ok'?'ok':'err',ev.status==='ok'?`  ✓  ${ev.email}`:`  ✗  ${ev.email} (${ev.reason})`);
+      }else if(ev.type==='done'){
+        setProgress('progFill','progPct',100);
+        g('progLabel').innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> เสร็จสิ้น`;
+        showBanner('alertBanner',ev.failed===0?'a-success':'a-warn',ev.failed===0?`ส่งสำเร็จทั้งหมด <strong>${ev.success} รายการ</strong>`:`สำเร็จ <strong>${ev.success}</strong> · ล้มเหลว <strong>${ev.failed}</strong>`);
+        btn.disabled=false;btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ส่งอีกครั้ง`;
+      }
+    });
+  }catch(e){addLog('logBox','err',`Error: ${e.message}`);btn.disabled=false;btn.innerHTML='ลองอีกครั้ง';}
+}
+
+function clearAccess(){clearSheet();g('senderNote').value='';clearBanner('alertBanner');g('resultsBody').innerHTML='<tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>กด "โหลดและตรวจสอบรายการ" เพื่อดูรายการก่อนส่ง</p></div></td></tr>';setText('tTotal','—');setText('tOk','—');setText('tErr','—');g('sendBtn').disabled=true;g('progPanel').classList.remove('on');employees=[];fileRows=[];}
+
+async function openPreviewModal(){
+  const emps=currentTab==='manual'?getSheetData():employees;
+  const email=emps[0]?.email||'employee@shd-technology.co.th',code=emps[0]?.code||'EMP001-2024';
+  g('modalTitle').textContent='ตัวอย่าง — Access Code Email';
+  g('previewModal').classList.add('open');
+  g('previewFrame').srcdoc='<div style="padding:20px;font-family:sans-serif;color:#64748B;">กำลังโหลด...</div>';
+  try{const r=await fetch('/api/preview-access-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,note:v('senderNote')})});g('previewFrame').srcdoc=await r.text();}
+  catch(e){g('previewFrame').srcdoc=`<p style="padding:20px;color:red;">${e.message}</p>`;}
+}
+
+// ═══ COMPOSE: RECIPIENTS ══════════════════════════════════════
+const rcptLists={to:[],cc:[],bcc:[]};
+function handleRcptKey(ev,field){
+  const input=g(`${field}Input`);
+  if(['Enter',',','Tab',' '].includes(ev.key)){
+    ev.preventDefault();
+    const val=input.value.trim().replace(/[,;]/g,'');
+    if(val&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){addRcpt(field,val);input.value='';}
+    else if(val){input.style.color='var(--red)';setTimeout(()=>input.style.color='',800);}
+  }
+  if(ev.key==='Backspace'&&!input.value&&rcptLists[field].length){removeRcpt(field,rcptLists[field].length-1);}
+}
+function handleRcptInput(ev,field){
+  const val=ev.target.value;
+  const emails=val.split(/[,;\s]+/).filter(e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()));
+  if(emails.length>1){emails.forEach(e=>addRcpt(field,e.trim()));ev.target.value='';}
+}
+function addRcpt(field,email){
+  if(rcptLists[field].includes(email))return;
+  rcptLists[field].push(email);renderRcpt(field);
+}
+function removeRcpt(field,idx){rcptLists[field].splice(idx,1);renderRcpt(field);}
+function renderRcpt(field){
+  const wrap=g(`${field}Wrap`);
+  const input=g(`${field}Input`);
+  wrap.querySelectorAll('.rcpt-tag').forEach(t=>t.remove());
+  rcptLists[field].forEach((email,i)=>{
+    const tag=document.createElement('span');tag.className='rcpt-tag';
+    tag.innerHTML=`${email}<button onclick="removeRcpt('${field}',${i})" title="ลบ"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+    wrap.insertBefore(tag,input);
+  });
+  const cnt=g(`${field}Count`);
+  if(rcptLists[field].length>0)cnt.textContent=`${rcptLists[field].length} คน`;
+  else cnt.textContent='';
+  setText('cTotal',rcptLists.to.length||'—');
+}
+function clearRcpt(field){rcptLists[field]=[];renderRcpt(field);}
+
+function importRecipientsFromCSV(){g('csvRcptInput').click();}
+async function importCSVRecipients(e){
+  const file=e.target.files[0];if(!file)return;
+  const text=await file.text();
+  const emails=text.split(/[\n,;\t\r]+/).map(s=>s.trim()).filter(s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
+  emails.forEach(email=>addRcpt('to',email));
+  showBanner('composeAlertBanner','a-success',`นำเข้า <strong>${emails.length}</strong> อีเมลจากไฟล์`);
+  e.target.value='';
+}
+
+// ═══ COMPOSE: EDITOR ══════════════════════════════════════════
+function execFmt(cmd,val=null){
+  g('emailBody').focus();
+  document.execCommand(cmd,false,val);
+  updateCharCount();
+}
+function updateCharCount(){
+  const len=g('emailBody').innerText.length;
+  setText('charCount',`${len.toLocaleString()} ตัวอักษร`);
+}
+function insertLink(){
+  const url=prompt('URL ของลิงก์:','https://');
+  const text=prompt('ข้อความที่แสดง:','คลิกที่นี่');
+  if(url&&text)execFmt('insertHTML',`<a href="${url}" style="color:#2563EB;">${text}</a>`);
+}
+function insertHR(){execFmt('insertHTML','<hr style="border:none;border-top:1px solid #E2E8F0;margin:16px 0;">');}
+
+function insertTemplate(type){
+  const tpls={
+    greeting:`<p>เรียน คุณ,</p><p>หวังว่าคุณจะสบายดี ทางบริษัท SHD Technology ขอแจ้งให้ทราบว่า...</p>`,
+    signature:`<br><hr style="border:none;border-top:1px solid #E2E8F0;margin:16px 0;"><p style="color:#6B7280;font-size:13px;"><strong style="color:#1A2236;">ทีม SHD Technology</strong><br>IT Department<br>โทร: 02-xxx-xxxx | <a href="mailto:it@shd-technology.co.th" style="color:#2563EB;">it@shd-technology.co.th</a></p>`,
+    table:`<table border="0" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#EFF6FF;"><th style="border:1px solid #DBEAFE;padding:8px;text-align:left;">หัวข้อ</th><th style="border:1px solid #DBEAFE;padding:8px;text-align:left;">รายละเอียด</th></tr></thead><tbody><tr><td style="border:1px solid #E5E7EB;padding:8px;">รายการ 1</td><td style="border:1px solid #E5E7EB;padding:8px;">ข้อมูล</td></tr><tr style="background:#F9FAFB;"><td style="border:1px solid #E5E7EB;padding:8px;">รายการ 2</td><td style="border:1px solid #E5E7EB;padding:8px;">ข้อมูล</td></tr></tbody></table>`,
+    button:`<br><p style="text-align:center;"><a href="#" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">คลิกที่นี่</a></p>`,
+  };
+  execFmt('insertHTML',tpls[type]||'');
+}
+
+// ═══ COMPOSE: ATTACHMENTS ═════════════════════════════════════
+let attachments=[];
+function extIcon(name){
+  const ext=name.split('.').pop().toLowerCase();
+  if(['pdf'].includes(ext))return{cls:'pdf',lbl:'PDF'};
+  if(['jpg','jpeg','png','gif','webp','svg'].includes(ext))return{cls:'img',lbl:ext.toUpperCase()};
+  if(['xlsx','xls','csv'].includes(ext))return{cls:'xlsx',lbl:'XLS'};
+  if(['doc','docx'].includes(ext))return{cls:'word',lbl:'DOC'};
+  return{cls:'def',lbl:ext.toUpperCase().slice(0,4)};
+}
+function fmtSize(b){if(b<1024)return b+'B';if(b<1024*1024)return(b/1024).toFixed(1)+'KB';return(b/1024/1024).toFixed(1)+'MB';}
+
+// Safe JSON parse — never throws "Unexpected token <"
+async function safeJson(resp){
+  const text=await resp.text();
+  try{return JSON.parse(text);}
+  catch(e){throw new Error(`Server error (HTTP ${resp.status}): ${text.slice(0,140)}`);}
+}
+
+const BLOCKED_EXT=['mp4','avi','mov','mkv','wmv','flv','webm','mp3','wav','aac','ogg','m4a','m4v','3gp'];
+
+async function handleAttachments(e){
+  const files=[...e.target.files];
+  let okCount=0;
+  for(const file of files){
+    const ext=file.name.split('.').pop().toLowerCase();
+    if(BLOCKED_EXT.includes(ext)){
+      showBanner('composeAlertBanner','a-error',
+        `<strong>${file.name}</strong> — ไม่รองรับ Video/Audio · Resend API ไม่สามารถส่งไฟล์ .${ext} ได้ กรุณาใช้ PDF, Word, Excel, รูปภาพ หรือ ZIP แทน`);
+      continue;
+    }
+    const fd=new FormData();fd.append('file',file);
+    try{
+      const r=await fetch('/api/upload-attachment',{method:'POST',body:fd});
+      const data=await safeJson(r);
+      if(!r.ok||data.error)throw new Error(data.error||`HTTP ${r.status}`);
+      attachments.push(data);
+      okCount++;
+    }catch(err){
+      showBanner('composeAlertBanner','a-error',`<strong>${file.name}</strong> — ${err.message}`);
+    }
+  }
+  if(okCount>0) showBanner('composeAlertBanner','a-success',`แนบไฟล์สำเร็จ ${attachments.length} ไฟล์รวม`);
+  renderAttachments();e.target.value='';
+}
+function renderAttachments(){
+  const list=g('attachList');list.innerHTML='';
+  let totalSize=0;
+  attachments.forEach((a,i)=>{
+    const {cls,lbl}=extIcon(a.filename);
+    totalSize+=a.size;
+    const item=document.createElement('div');item.className='attach-item';
+    item.innerHTML=`<div class="attach-icon ${cls}">${lbl}</div><div class="attach-info"><div class="attach-name">${a.filename}</div><div class="attach-size">${fmtSize(a.size)}</div></div><button class="attach-rm" onclick="removeAttach(${i})" title="ลบ"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H5L4 6"/></svg></button>`;
+    list.appendChild(item);
+  });
+  const tot=g('attachTotal');const totTxt=g('attachTotalText');
+  if(attachments.length){tot.style.display='flex';totTxt.textContent=`${attachments.length} ไฟล์ · รวม ${fmtSize(totalSize)}`;}
+  else tot.style.display='none';
+}
+function removeAttach(i){attachments.splice(i,1);renderAttachments();}
+
+// ═══ COMPOSE: SEND ════════════════════════════════════════════
+async function startComposeSend(){
+  const recipients=rcptLists.to;
+  const subject=v('emailSubject');
+  const htmlBody=g('emailBody').innerHTML;
+
+  if(!recipients.length){showBanner('composeAlertBanner','a-warn','กรุณาเพิ่มผู้รับอย่างน้อย 1 คน');scrollToId('composeRecipients');return;}
+  if(!subject){showBanner('composeAlertBanner','a-warn','กรุณากรอกหัวข้ออีเมล');scrollToId('composeSubject');return;}
+  if(!g('emailBody').innerText.trim()){showBanner('composeAlertBanner','a-warn','กรุณากรอกเนื้อหาอีเมล');scrollToId('composeBody');return;}
+
+  const btn=g('composeSendBtn');btn.disabled=true;btn.innerHTML=`<span class="spin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.48-4"/></svg></span> กำลังส่ง...`;
+
+  // Build results table
+  g('composeResultsBody').innerHTML=recipients.map((email,i)=>`<tr id="crr-${i}"><td class="rtn">${String(i+1).padStart(2,'0')}</td><td class="rte">${email}</td><td><span class="spill pending" id="crs-${i}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>รอส่ง</span></td></tr>`).join('');
+  setText('cTotal',recipients.length);setText('cOk','—');setText('cErr','—');
+
+  const pp=g('composeProgPanel');pp.classList.add('on');pp.scrollIntoView({behavior:'smooth',block:'start'});
+  setText('cpTot',recipients.length);setText('cpOk','0');setText('cpErr','0');
+  g('composeLogBox').innerHTML='';setProgress('composeProgFill','composeProgPct',0);
+  addLog('composeLogBox','info',`เริ่มส่ง ${recipients.length} รายการ · ${attachments.length} ไฟล์แนบ`);
+
+  const allRecipients=[...recipients,...(rcptLists.cc.length?rcptLists.cc:[]),...(rcptLists.bcc.length?rcptLists.bcc:[])];
+
+  try{
+    // Check server first with a non-SSE approach is not needed; just detect HTML response in readSSE
+    const resp=await fetch('/api/send-custom',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        recipients,
+        subject,htmlBody,
+        fromName:v('fromName')||'SHD Technology',
+        replyTo:v('replyTo')||undefined,
+        attachments:attachments.map(a=>({filename:a.filename,contentType:a.contentType,content:a.content})),
+      })
+    });
+    if(!resp.ok){
+      const data=await safeJson(resp);
+      throw new Error(data.error||`HTTP ${resp.status}`);
+    }
+    await readSSE(resp,ev=>{
+      if(ev.type==='progress'){
+        setProgress('composeProgFill','composeProgPct',Math.round((ev.success+ev.failed)/ev.total*100));
+        setText('cpOk',ev.success);setText('cpErr',ev.failed);setText('cOk',ev.success);setText('cErr',ev.failed);
+        const idx=recipients.indexOf(ev.email);
+        if(idx>=0){const s=g(`crs-${idx}`),row=g(`crr-${idx}`);if(s){if(ev.status==='ok'){s.className='spill ok';s.innerHTML=svgOk()+' สำเร็จ';row.classList.add('row-ok');}else{s.className='spill err';s.innerHTML=svgErr()+' ล้มเหลว';row.classList.add('row-err');}}}
+        addLog('composeLogBox',ev.status==='ok'?'ok':'err',ev.status==='ok'?`  ✓  ${ev.email}`:`  ✗  ${ev.email} (${ev.reason})`);
+      }else if(ev.type==='done'){
+        setProgress('composeProgFill','composeProgPct',100);
+        g('composeProgLabel').innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> เสร็จสิ้น`;
+        showBanner('composeAlertBanner',ev.failed===0?'a-success':'a-warn',ev.failed===0?`ส่งสำเร็จทั้งหมด <strong>${ev.success} รายการ</strong>`:`สำเร็จ <strong>${ev.success}</strong> · ล้มเหลว <strong>${ev.failed}</strong>`);
+        btn.disabled=false;btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ส่งอีกครั้ง`;
+      }
+    });
+  }catch(e){addLog('composeLogBox','err',`Error: ${e.message}`);btn.disabled=false;btn.textContent='ลองอีกครั้ง';}
+}
+
+function clearCompose(){
+  ['to','cc','bcc'].forEach(f=>{rcptLists[f]=[];renderRcpt(f);});
+  g('emailSubject').value='';g('fromName').value='SHD Technology';g('replyTo').value='';
+  g('emailBody').innerHTML='';g('scheduleTime').value='';
+  attachments=[];renderAttachments();
+  clearBanner('composeAlertBanner');
+  g('composeResultsBody').innerHTML='<tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><p>กด "ส่ง Email ทั้งหมด" เพื่อเริ่มส่ง</p></div></td></tr>';
+  setText('cTotal','—');setText('cOk','—');setText('cErr','—');
+  g('composeProgPanel').classList.remove('on');updateCharCount();
+}
+
+async function openComposePreview(){
+  const html=buildComposeEmailHTML();
+  g('modalTitle').textContent='ตัวอย่าง — Custom Email';
+  g('previewModal').classList.add('open');
+  g('previewFrame').srcdoc=html;
+}
+
+function buildComposeEmailHTML(){
+  const subject=v('emailSubject')||'(ไม่มีหัวข้อ)';
+  const body=g('emailBody').innerHTML||'(ไม่มีเนื้อหา)';
+  const year=new Date().getFullYear();
+  return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;">
+  <tr><td align="center" style="padding:32px 16px 48px;">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <tr><td align="center" style="padding-bottom:18px;"><img src="https://shd-technology.co.th/images/logo.png" alt="SHD Technology" width="100" style="display:block;height:auto;"></td></tr>
+      <tr><td style="background:#1D4ED8;border-radius:10px 10px 0 0;padding:24px 36px;">
+        <h2 style="color:#fff;font-size:18px;font-weight:700;margin:0;letter-spacing:-0.2px;">${subject}</h2>
+      </td></tr>
+      <tr><td style="background:#fff;padding:32px 36px;border:1px solid #E2E8F0;border-top:none;font-size:14px;line-height:1.75;color:#374151;">
+        ${body}
+      </td></tr>
+      ${attachments.length?`<tr><td style="background:#F8FAFC;border:1px solid #E2E8F0;border-top:none;padding:14px 36px;"><p style="color:#6B7280;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">ไฟล์แนบ (${attachments.length} ไฟล์)</p>${attachments.map(a=>`<span style="display:inline-block;background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8;border-radius:4px;padding:3px 10px;font-size:12px;margin:2px 4px 2px 0;">${a.filename}</span>`).join('')}</td></tr>`:''}
+      <tr><td style="background:#1E293B;border-radius:0 0 10px 10px;padding:18px 36px;">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td><p style="color:#475569;font-size:11px;margin:0;">&copy; ${year} SHD Technology<br><a href="https://shd-technology.co.th" style="color:#60A5FA;text-decoration:none;">shd-technology.co.th</a></p></td>
+          <td align="right"><p style="color:#334155;font-size:11px;margin:0;">อีเมลนี้ส่งโดยอัตโนมัติ</p></td>
+        </tr></table>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+}
+
+// ═══ SHARED UTILS ══════════════════════════════════════════════
+function setProgress(fillId,pctId,pct){
+  g(fillId).style.width=pct+'%';g(pctId).textContent=pct+'%';
+}
+async function readSSE(resp,handler){
+  const reader=resp.body.getReader(),dec=new TextDecoder();let buf='';
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const line of lines)if(line.startsWith('data: '))try{handler(JSON.parse(line.slice(6)));}catch(e){}
+  }
+}
+function closeModal(){g('previewModal').classList.remove('open');}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initSheet();
+  g('emailBody').addEventListener('input',updateCharCount);
+});
+</script>
+</body>
+</html>
