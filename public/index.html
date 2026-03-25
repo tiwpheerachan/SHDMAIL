@@ -48,7 +48,7 @@ body{font-family:'Outfit',sans-serif;font-size:13px;background:#EDF1F7;color:#1A
 .app{flex:1;display:flex;overflow:hidden;}
 
 /* ── Sidebar ── */
-.sidebar{width:var(--sb-w);background:linear-gradient(180deg,#7ea3ff 0%,#00b55a 100%);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar{width:var(--sb-w);background:linear-gradient(180deg,#1740A6 0%,#1230A0 100%);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;}
 .sidebar::-webkit-scrollbar{width:0;}
 .sb-accent{height:3px;background:linear-gradient(90deg,#60A5FA,#34D399);flex-shrink:0;}
 .sb-section{padding:16px 10px 6px;}
@@ -60,7 +60,7 @@ body{font-family:'Outfit',sans-serif;font-size:13px;background:#EDF1F7;color:#1A
 .nav-item:hover{background:var(--sb-hi);color:rgba(255,255,255,0.85);}
 .nav-item.active{background:var(--sb-ac);color:var(--sb-active);font-weight:600;}
 .nav-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.12);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,0.4);font-family:var(--mono);}
-.nav-item.active .nav-num{background:#29ff57;border-color:#60A5FA;color:#fff;}
+.nav-item.active .nav-num{background:#3B82F6;border-color:#60A5FA;color:#fff;}
 .nav-item.done .nav-num{background:var(--green);border-color:#4ADE80;color:#fff;}
 .nav-icon{width:14px;height:14px;flex-shrink:0;opacity:0.5;}
 .nav-item:hover .nav-icon,.nav-item.active .nav-icon{opacity:1;}
@@ -105,7 +105,7 @@ body{font-family:'Outfit',sans-serif;font-size:13px;background:#EDF1F7;color:#1A
 /* ── Hint bar ── */
 .hint{background:var(--blue-lt);border:1px solid var(--blue-bd);border-radius:7px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#1E40AF;line-height:1.55;}
 .hint svg{flex-shrink:0;margin-top:1px;color:var(--blue);}
-kbd{background:#DBEAFE;color:#23bdff;border:1px solid #BFDBFE;border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--mono);}
+kbd{background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--mono);}
 
 /* ── Spreadsheet ── */
 .sheet-outer{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
@@ -113,7 +113,7 @@ kbd{background:#DBEAFE;color:#23bdff;border:1px solid #BFDBFE;border-radius:3px;
 .sheet-scroll::-webkit-scrollbar{width:4px;}
 .sheet-scroll::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
 .sheet-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
-.sheet-table col.cn{width:40px;}.sheet-table col.ce{width:calc(50% - 20px - 18px);}.sheet-table col.cc{width:calc(50% - 20px - 18px);}.sheet-table col.ci{width:36px;}
+.sheet-table col.cn{width:40px;}.sheet-table col.cname{width:28%;}.sheet-table col.ce{width:34%;}.sheet-table col.cc{width:28%;}.sheet-table col.ci{width:34px;}
 .sheet-table thead{position:sticky;top:0;z-index:2;}
 .sheet-table thead tr{background:#F5F7FB;}
 .sheet-table thead th{padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text-mid);border-bottom:1.5px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;user-select:none;}
@@ -129,7 +129,7 @@ kbd{background:#DBEAFE;color:#23bdff;border:1px solid #BFDBFE;border-radius:3px;
 .sinput{width:100%;border:none;background:transparent;font-family:var(--mono);font-size:12px;color:var(--text);padding:7px 10px;outline:none;line-height:1.4;display:block;}
 .sinput::placeholder{color:#CBD5E1;font-family:'Outfit',sans-serif;font-size:11.5px;font-style:italic;}
 .sinput:focus{background:#EFF6FF;}
-.sinput.code-inp{text-transform:uppercase;letter-spacing:0.8px;}
+.sinput.code-inp{letter-spacing:0.5px;}
 .sheet-foot{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#F5F7FB;border-top:1px solid var(--border);}
 .sstats{display:flex;gap:14px;align-items:center;}
 .ss{font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
@@ -326,6 +326,28 @@ button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;display:inline
 ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
 .flex-gap{display:flex;gap:8px;}
 </style>
+
+<!-- Autocomplete styles -->
+<style>
+.ac-wrap{position:relative;}
+.ac-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--blue-bd);border-radius:8px;box-shadow:0 8px 24px rgba(37,99,235,0.12);z-index:999;max-height:280px;overflow-y:auto;display:none;}
+.ac-dropdown.open{display:block;}
+.ac-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background 0.1s;border-bottom:1px solid #F0F3F8;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover,.ac-item.selected{background:var(--blue-lt);}
+.ac-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#0EA5E9);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Outfit',sans-serif;}
+.ac-main{flex:1;min-width:0;}
+.ac-name{font-size:13px;font-weight:600;color:var(--text);}
+.ac-sub{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ac-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--blue-lt);color:var(--blue);white-space:nowrap;flex-shrink:0;border:1px solid var(--blue-bd);}
+.ac-badge.green{background:var(--green-lt);color:var(--green);border-color:#BBF7D0;}
+.ac-empty{padding:14px 16px;font-size:12px;color:var(--text-muted);text-align:center;}
+.ac-header{padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:#FAFBFF;}
+/* sheet row name cell highlight */
+.sn-filled{background:#EFF6FF!important;}
+</style>
+<script src="employees.js"></script>
+
 </head>
 <body>
 
@@ -496,9 +518,10 @@ button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;display:inline
             <div class="sheet-outer">
               <div class="sheet-scroll">
                 <table class="sheet-table" id="sheetTable">
-                  <colgroup><col class="cn"><col class="ce"><col class="cc"><col class="ci"></colgroup>
+                  <colgroup><col class="cn"><col class="cname"><col class="ce"><col class="cc"><col class="ci"></colgroup>
                   <thead><tr>
                     <th class="th-n">#</th>
+                    <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>ชื่อ-นามสกุล</div></th>
                     <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Address</div></th>
                     <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Access Code</div></th>
                     <th style="text-align:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></th>
@@ -535,10 +558,10 @@ button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;display:inline
             <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
             <div class="col-mapper" id="colMapper">
               <div class="flabel" style="margin-bottom:10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>เชื่อมคอลัมน์กับข้อมูล</div>
-              <div class="mgrid">
-                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>คอลัมน์อีเมล</div><select id="emailColSelect" onchange="remapFile()"></select></div>
-                <div class="arrow-c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
-                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>คอลัมน์รหัส</div><select id="codeColSelect" onchange="remapFile()"></select></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:4px;">
+                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>ชื่อ-นามสกุล</div><select id="nameColSelect" onchange="remapFile()"></select></div>
+                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>อีเมล</div><select id="emailColSelect" onchange="remapFile()"></select></div>
+                <div><div class="flabel"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Access Code</div><select id="codeColSelect" onchange="remapFile()"></select></div>
               </div>
               <div id="fileAlert" style="margin-top:10px;"></div>
             </div>
@@ -575,11 +598,12 @@ button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;display:inline
         <div id="alertBanner" style="padding:0 28px;"></div>
         <div class="panel-body" style="padding-top:14px;">
           <div class="res-outer"><div class="res-scroll">
-            <table class="rt" id="resultsTable">
-              <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
+            <table class="rt" id="resultsTable" style="table-layout:fixed;">
+              <colgroup><col style="width:38px"><col style="width:28%"><col style="width:40%"><col style="width:90px"></colgroup>
               <thead><tr>
                 <th class="th-c">#</th>
-                <th><div style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</div></th>
+                <th>ชื่อ-นามสกุล</th>
+                <th>Email</th>
                 <th>สถานะ</th>
               </tr></thead>
               <tbody id="resultsBody"><tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>กด "โหลดและตรวจสอบรายการ" เพื่อดูรายการก่อนส่ง</p></div></td></tr></tbody>
@@ -883,7 +907,7 @@ function setMode(mode, el){
 
 // ═══ ACCESS CODE: SHEET ═══════════════════════════════════════
 const INIT_ROWS=20;
-let employees=[], fileRows=[], fileEmailCol=-1, fileCodeCol=-1, currentTab='manual';
+let employees=[], fileRows=[], fileEmailCol=-1, fileCodeCol=-1, fileNameCol=-1, fileTableCol=-1, currentTab='manual';
 
 function initSheet(){
   g('sheetBody').innerHTML='';
@@ -893,27 +917,34 @@ function initSheet(){
 function createRow(i){
   const tr=document.createElement('tr');tr.className='s-row';tr.id=`sr-${i}`;
   tr.innerHTML=`<td class="td-n">${String(i+1).padStart(2,'0')}</td>
+    <td class="td-cell" style="position:relative;">
+      <input class="sinput" id="sn-${i}" placeholder="พิมพ์ชื่อหรือชื่อเล่น..." autocomplete="off"
+        oninput="onNameInput(${i})" onkeydown="onNameKey(event,${i})" onblur="setTimeout(()=>closeAc(${i}),180)">
+      <div class="ac-dropdown" id="ac-${i}"></div>
+    </td>
     <td class="td-cell"><input class="sinput" id="se-${i}" placeholder="email@company.com" oninput="onCell(${i})" onpaste="onPaste(event,${i},'e')" onkeydown="onKey(event,${i},'e')"></td>
-    <td class="td-cell"><input class="sinput code-inp" id="sc-${i}" placeholder="ACCESS-CODE" oninput="onCell(${i})" onpaste="onPaste(event,${i},'c')" onkeydown="onKey(event,${i},'c')"></td>
+    <td class="td-cell"><input class="sinput" id="sc-${i}" placeholder="ACCESS-CODE" oninput="onCell(${i})" onpaste="onPaste(event,${i},'c')" onkeydown="onKey(event,${i},'c')"></td>
     <td class="td-icon"><span id="si-${i}"></span></td>`;
   g('sheetBody').appendChild(tr);
 }
 function addRows(n){const len=g('sheetBody').querySelectorAll('tr').length;for(let i=len;i<len+n;i++)createRow(i);}
 function onCell(i){
-  const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
+  const nm=(g(`sn-${i}`)?.value||'').trim(),e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
   const row=g(`sr-${i}`),icon=g(`si-${i}`);if(!row)return;
   row.classList.remove('r-ok','r-warn','r-err');
+  const hasAny=nm||e||c;
   if(e&&c){if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){icon.innerHTML=svgOk();row.classList.add('r-ok');}else{icon.innerHTML=svgErr();row.classList.add('r-err');}}
-  else if(e||c){icon.innerHTML=svgWarn();row.classList.add('r-warn');}
+  else if(hasAny){icon.innerHTML=svgWarn();row.classList.add('r-warn');}
   else icon.innerHTML='';
   const total=g('sheetBody').querySelectorAll('tr').length;
-  if(i===total-1&&(e||c))createRow(total);
+  if(i===total-1&&hasAny)createRow(total);
   syncStats();
 }
 function onKey(ev,i,col){
-  if(ev.key==='Enter'||(ev.key==='Tab'&&!ev.shiftKey&&col==='c')){ev.preventDefault();g(`se-${i+1}`)?.focus();}
-  if(ev.key==='ArrowDown'){ev.preventDefault();g(col==='e'?`se-${i+1}`:`sc-${i+1}`)?.focus();}
-  if(ev.key==='ArrowUp'){ev.preventDefault();g(col==='e'?`se-${i-1}`:`sc-${i-1}`)?.focus();}
+  const nxt={n:'e',e:'c',c:'n'};
+  if(ev.key==='Enter'||(ev.key==='Tab'&&!ev.shiftKey)){ev.preventDefault();g(`s${nxt[col]}-${col==='c'?i+1:i}`)?.focus();}
+  if(ev.key==='ArrowDown'){ev.preventDefault();const id=col==='n'?`sn-${i+1}`:col==='e'?`se-${i+1}`:`sc-${i+1}`;g(id)?.focus();}
+  if(ev.key==='ArrowUp'){ev.preventDefault();const id=col==='n'?`sn-${i-1}`:col==='e'?`se-${i-1}`:`sc-${i-1}`;g(id)?.focus();}
 }
 function onPaste(ev,start,col){
   ev.preventDefault();
@@ -927,8 +958,8 @@ function onPaste(ev,start,col){
 function syncStats(){
   let total=0,filled=0,incomplete=0;
   g('sheetBody').querySelectorAll('tr').forEach((_,i)=>{
-    const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
-    if(e||c){total++;if(e&&c)filled++;else incomplete++;}
+    const nm=(g(`sn-${i}`)?.value||'').trim(),e=(g(`se-${i}`)?.value||'').trim(),co=(g(`sc-${i}`)?.value||'').trim();
+    if(nm||e||co){total++;if(e&&co)filled++;else incomplete++;}
   });
   setText('sTotal',total);setText('sFilled',filled);setText('sIncomplete',incomplete);
 }
@@ -936,8 +967,8 @@ function clearSheet(){g('sheetBody').innerHTML='';for(let i=0;i<INIT_ROWS;i++)cr
 function getSheetData(){
   const rows=[];
   g('sheetBody').querySelectorAll('tr').forEach((_,i)=>{
-    const e=(g(`se-${i}`)?.value||'').trim(),c=(g(`sc-${i}`)?.value||'').trim();
-    if(e&&c)rows.push({email:e,code:c});
+    const nm=(g(`sn-${i}`)?.value||'').trim(),e=(g(`se-${i}`)?.value||'').trim(),co=(g(`sc-${i}`)?.value||'').trim();
+    if(e&&co)rows.push({name:nm,email:e,code:co});
   });
   return rows;
 }
@@ -962,25 +993,47 @@ async function uploadFile(file){
     const r=await fetch('/api/parse-file',{method:'POST',body:fd});
     const data=await safeJson(r);if(!r.ok||data.error)throw new Error(data.error||`HTTP ${r.status}`);
     fileRows=data.rows;fileEmailCol=data.emailCol;fileCodeCol=data.codeCol;
+    // Auto-detect name and table columns
+    fileNameCol=-1;fileTableCol=-1;
+    (data.headers||[]).forEach((h,i)=>{
+      const l=String(h).toLowerCase();
+      if(l.includes('ชื่อ')||l.includes('name'))fileNameCol=i;
+      if(l.includes('โต๊ะ')||l.includes('table')||l.includes('seat')||l.includes('ที่นั่ง'))fileTableCol=i;
+    });
     zone.innerHTML=`<div class="upload-z-icon" style="color:var(--green)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/></svg></div><div class="upload-z-title" style="color:var(--green)">${file.name}</div><div class="upload-z-sub">${fileRows.length} แถว · คลิกเพื่อเปลี่ยน</div>`;
-    const es=g('emailColSelect'),cs=g('codeColSelect');es.innerHTML=cs.innerHTML='';
-    data.headers.forEach((h,i)=>{const l=h||`คอลัมน์ ${i+1}`;es.innerHTML+=`<option value="${i}" ${i===data.emailCol?'selected':''}>${l}</option>`;cs.innerHTML+=`<option value="${i}" ${i===data.codeCol?'selected':''}>${l}</option>`;});
+    const ns=g('nameColSelect'),es=g('emailColSelect'),cs=g('codeColSelect'),ts=g('tableColSelect');
+    ns.innerHTML=es.innerHTML=cs.innerHTML=ts.innerHTML='<option value="-1">— ไม่ใช้ —</option>';
+    data.headers.forEach((h,i)=>{
+      const l=h||`คอลัมน์ ${i+1}`;
+      ns.innerHTML+=`<option value="${i}" ${i===fileNameCol?'selected':''}>${l}</option>`;
+      es.innerHTML+=`<option value="${i}" ${i===data.emailCol?'selected':''}>${l}</option>`;
+      cs.innerHTML+=`<option value="${i}" ${i===data.codeCol?'selected':''}>${l}</option>`;
+      ts.innerHTML+=`<option value="${i}" ${i===fileTableCol?'selected':''}>${l}</option>`;
+    });
     g('colMapper').classList.add('visible');remapFile();
   }catch(e){zone.innerHTML=`<div class="upload-z-icon" style="color:var(--red)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="upload-z-title" style="color:var(--red)">เกิดข้อผิดพลาด</div><div class="upload-z-sub">${e.message}</div>`;}
 }
 function remapFile(){
-  fileEmailCol=parseInt(g('emailColSelect').value);fileCodeCol=parseInt(g('codeColSelect').value);
+  fileEmailCol=parseInt(g('emailColSelect').value)||0;
+  fileCodeCol=parseInt(g('codeColSelect').value)||0;
+  fileNameCol=parseInt(g('nameColSelect')?.value??-1);
+  fileTableCol=parseInt(g('tableColSelect')?.value??-1);
   const n=fileRows.slice(1).filter(r=>r[fileEmailCol]&&r[fileCodeCol]).length;
-  g('fileAlert').innerHTML=`<div class="alert a-info">${aIcon('a-info')}<span>พบ <strong>${n}</strong> รายการ — กด "โหลดและตรวจสอบรายการ"</span></div>`;
+  g('fileAlert').innerHTML=`<div class="alert a-info">${aIcon('a-info')}<span>พบ <strong>${n}</strong> รายการ ${fileTableCol>=0?'· มีข้อมูลโต๊ะ':'· ไม่มีข้อมูลโต๊ะ'} — กด "โหลดและตรวจสอบรายการ"</span></div>`;
 }
 
 // build preview / send
 function buildPreview(){
   let emps=[];
   if(currentTab==='manual'){emps=getSheetData();if(!emps.length){showBanner('alertBanner','a-warn','กรุณากรอกข้อมูลก่อน');return;}}
-  else{if(!fileRows.length){showBanner('alertBanner','a-warn','กรุณาอัพโหลดไฟล์ก่อน');return;}emps=fileRows.slice(1).filter(r=>r[fileEmailCol]&&r[fileCodeCol]).map(r=>({email:String(r[fileEmailCol]).trim(),code:String(r[fileCodeCol]).trim()}));}
+  else{if(!fileRows.length){showBanner('alertBanner','a-warn','กรุณาอัพโหลดไฟล์ก่อน');return;}emps=fileRows.slice(1).filter(r=>r[fileEmailCol]&&r[fileCodeCol]).map(r=>({name:fileNameCol>=0?String(r[fileNameCol]||'').trim():'',email:String(r[fileEmailCol]).trim(),code:String(r[fileCodeCol]).trim(),table:fileTableCol>=0?String(r[fileTableCol]||'').trim():''}));}
   employees=emps;
-  g('resultsBody').innerHTML=employees.map((e,i)=>`<tr id="rr-${i}"><td class="rtn">${String(i+1).padStart(2,'0')}</td><td class="rte" title="${e.email}">${e.email}</td><td><span class="spill pending" id="rs-${i}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>รอส่ง</span></td></tr>`).join('');
+  g('resultsBody').innerHTML=employees.map((e,i)=>`<tr id="rr-${i}">
+    <td class="rtn">${String(i+1).padStart(2,'0')}</td>
+    <td class="rte" style="font-size:12px;">${e.name||'—'}</td>
+    <td class="rte" style="font-family:var(--mono);font-size:11px;" title="${e.email}">${e.email}</td>
+    <td><span class="spill pending" id="rs-${i}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>รอส่ง</span></td>
+  </tr>`).join('');
   setText('tTotal',employees.length);setText('tOk','—');setText('tErr','—');
   g('sendBtn').disabled=employees.length===0;
   if(employees.length)showBanner('alertBanner','a-success',`พร้อมส่ง <strong>${employees.length}</strong> รายการ — กด "ส่ง Email ทั้งหมด"`);
@@ -1013,15 +1066,15 @@ async function startSending(){
   }catch(e){addLog('logBox','err',`Error: ${e.message}`);btn.disabled=false;btn.innerHTML='ลองอีกครั้ง';}
 }
 
-function clearAccess(){clearSheet();g('senderNote').value='';clearBanner('alertBanner');g('resultsBody').innerHTML='<tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>กด "โหลดและตรวจสอบรายการ" เพื่อดูรายการก่อนส่ง</p></div></td></tr>';setText('tTotal','—');setText('tOk','—');setText('tErr','—');g('sendBtn').disabled=true;g('progPanel').classList.remove('on');employees=[];fileRows=[];}
+function clearAccess(){window.__acResults={};clearSheet();g('senderNote').value='';clearBanner('alertBanner');g('resultsBody').innerHTML='<tr><td colspan="3"><div class="empty-s"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>กด "โหลดและตรวจสอบรายการ" เพื่อดูรายการก่อนส่ง</p></div></td></tr>';setText('tTotal','—');setText('tOk','—');setText('tErr','—');g('sendBtn').disabled=true;g('progPanel').classList.remove('on');employees=[];fileRows=[];}
 
 async function openPreviewModal(){
   const emps=currentTab==='manual'?getSheetData():employees;
-  const email=emps[0]?.email||'employee@shd-technology.co.th',code=emps[0]?.code||'EMP001-2024';
+  const email=emps[0]?.email||'employee@shd-technology.co.th',code=emps[0]?.code||'EMP001-2024',table=emps[0]?.table||'1',name=emps[0]?.name||'ชื่อ-นามสกุล';
   g('modalTitle').textContent='ตัวอย่าง — Access Code Email';
   g('previewModal').classList.add('open');
   g('previewFrame').srcdoc='<div style="padding:20px;font-family:sans-serif;color:#64748B;">กำลังโหลด...</div>';
-  try{const r=await fetch('/api/preview-access-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,note:v('senderNote')})});g('previewFrame').srcdoc=await r.text();}
+  try{const r=await fetch('/api/preview-access-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,note:v('senderNote'),table,name})});g('previewFrame').srcdoc=await r.text();}
   catch(e){g('previewFrame').srcdoc=`<p style="padding:20px;color:red;">${e.message}</p>`;}
 }
 
@@ -1278,6 +1331,117 @@ async function readSSE(resp,handler){
   }
 }
 function closeModal(){g('previewModal').classList.remove('open');}
+
+
+// ═══ AUTOCOMPLETE ENGINE ═══════════════════════════════════════
+let acSelected = {};  // row -> selected index
+
+function normalizeSearch(s){
+  return s.toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+function searchEmployees(q){
+  if(!q||q.length<1)return[];
+  const nq=normalizeSearch(q);
+  const results=[];
+  for(const emp of EMPLOYEE_DB){
+    const fields=[emp.name,emp.nick,emp.email,emp.dept,emp.pos].join(' ').toLowerCase();
+    if(fields.includes(nq))results.push(emp);
+    if(results.length>=8)break;
+  }
+  return results;
+}
+
+function initials(name){
+  const parts=name.trim().split(' ');
+  if(parts.length>=2)return(parts[0][0]+(parts[1][0]||'')).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+function renderAc(i, results){
+  const dd=g(`ac-${i}`);if(!dd)return;
+  if(!results.length){
+    dd.innerHTML=`<div class="ac-empty">ไม่พบรายชื่อ — กรอกอีเมลเองได้เลย</div>`;
+    dd.classList.add('open');return;
+  }
+  dd.innerHTML=`<div class="ac-header">พบ ${results.length} รายการ — กด ↑↓ เพื่อเลือก</div>`+
+    results.map((emp,idx)=>`
+    <div class="ac-item" id="ac-item-${i}-${idx}" onclick="selectEmp(${i},${idx})">
+      <div class="ac-avatar">${initials(emp.name)}</div>
+      <div class="ac-main">
+        <div class="ac-name">${emp.name}${emp.nick?` <span style="color:var(--text-muted);font-weight:400;">(${emp.nick})</span>`:''}</div>
+        <div class="ac-sub">${emp.pos} · ${emp.dept}</div>
+      </div>
+      <div class="ac-badge ${emp.status==='สร้างแล้ว'?'green':''}">${emp.status}</div>
+    </div>`).join('');
+  dd.classList.add('open');
+  acSelected[i]=-1;
+  window.__acResults=window.__acResults||{};
+  window.__acResults[i]=results;
+}
+
+function closeAc(i){
+  const dd=g(`ac-${i}`);if(dd)dd.classList.remove('open');
+}
+
+function selectEmp(i, idx){
+  const results=window.__acResults?.[i];
+  if(!results||!results[idx])return;
+  const emp=results[idx];
+  const ni=g(`sn-${i}`);
+  if(ni)ni.value=emp.name+(emp.nick?` (${emp.nick})`:'');
+  const ei=g(`se-${i}`);if(ei)ei.value=emp.email;
+  const ci=g(`sc-${i}`);if(ci){ci.value=emp.code;} // keep original case
+  closeAc(i);
+  onCell(i);
+  setTimeout(()=>g(`sn-${i+1}`)?.focus(),50);
+}
+
+function onNameInput(i){
+  const val=(g(`sn-${i}`)?.value||'').trim();
+  if(!val){closeAc(i);return;}
+  const results=searchEmployees(val);
+  renderAc(i,results);
+  // clear email/code if user types manually
+  onCell(i);
+}
+
+function onNameKey(ev,i){
+  const dd=g(`ac-${i}`);
+  const isOpen=dd&&dd.classList.contains('open');
+  const results=window.__acResults?.[i]||[];
+  if(isOpen&&results.length){
+    if(ev.key==='ArrowDown'){
+      ev.preventDefault();
+      acSelected[i]=Math.min((acSelected[i]??-1)+1,results.length-1);
+      highlightAc(i);
+    }else if(ev.key==='ArrowUp'){
+      ev.preventDefault();
+      acSelected[i]=Math.max((acSelected[i]??0)-1,0);
+      highlightAc(i);
+    }else if(ev.key==='Enter'&&(acSelected[i]??-1)>=0){
+      ev.preventDefault();
+      selectEmp(i,acSelected[i]);
+    }else if(ev.key==='Escape'){
+      closeAc(i);
+    }else if(ev.key==='Tab'){
+      if((acSelected[i]??-1)>=0)selectEmp(i,acSelected[i]);
+      else closeAc(i);
+    }
+  } else {
+    if(ev.key==='ArrowDown'){ev.preventDefault();g(`se-${i}`)?.focus();}
+    if(ev.key==='ArrowUp'){ev.preventDefault();g(`sn-${i-1}`)?.focus();}
+    if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();g(`se-${i}`)?.focus();}
+  }
+}
+
+function highlightAc(i){
+  const sel=acSelected[i]??-1;
+  document.querySelectorAll(`[id^="ac-item-${i}-"]`).forEach((el,idx)=>{
+    el.classList.toggle('selected',idx===sel);
+    if(idx===sel)el.scrollIntoView({block:'nearest'});
+  });
+}
 
 document.addEventListener('DOMContentLoaded',()=>{
   initSheet();
